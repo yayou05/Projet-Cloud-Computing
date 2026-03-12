@@ -31,13 +31,14 @@ resource "azurerm_network_interface" "projet" {
   }
 }
 
-resource "azurerm_windows_virtual_machine" "projet" {
+resource "azurerm_linux_virtual_machine" "projet" {
   name                = "projet-machine"
   resource_group_name = azurerm_resource_group.projet.name
   location            = azurerm_resource_group.projet.location
   size                = "Standard_D2s_v3"
   admin_username      = "adminProjet"
   admin_password      = "12345&azerty!!"
+  disable_password_authentication = false
   network_interface_ids = [
     azurerm_network_interface.projet.id,
   ]
@@ -48,9 +49,9 @@ resource "azurerm_windows_virtual_machine" "projet" {
   }
 
   source_image_reference {
-    publisher = "MicrosoftWindowsServer"
-    offer     = "WindowsServer"
-    sku       = "2016-Datacenter"
+    publisher = "Canonical"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 }
@@ -95,18 +96,6 @@ resource "azurerm_network_security_group" "projet" {
   name                = "projet-nsg"
   location            = azurerm_resource_group.projet.location
   resource_group_name = azurerm_resource_group.projet.name
-
-  security_rule {
-    name                       = "RDP"
-    priority                   = 1002
-    direction                  = "Inbound"
-    access                     = "Allow"
-    protocol                   = "Tcp"
-    source_port_range          = "*"
-    destination_port_range     = "3389"
-    source_address_prefix      = "*"
-    destination_address_prefix = "*"
-  }
 
   security_rule {
     name                       = "NodeJS"
