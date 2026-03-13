@@ -1,0 +1,17 @@
+azure_subscription_id       = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+admin_password              = "ChangeMe_StrongPassword123!"
+storage_account_name        = "projetstoragetp1203"
+
+# Optional overrides
+# azure_location            = "francecentral"
+# resource_group_name       = "projet-resources"
+# virtual_network_name      = "projet-network"
+# vnet_address_space        = "10.0.0.0/16"
+# subnet_name               = "internal"
+# subnet_address_prefix     = "10.0.2.0/24"
+# network_interface_name    = "projet-nic"
+# vm_name                   = "projet-machine"
+# vm_size                   = "Standard_D2s_v3"
+# admin_username            = "adminProjet"
+# public_ip_name            = "projet-public-ip"
+# network_security_group_name = "projet-nsg"

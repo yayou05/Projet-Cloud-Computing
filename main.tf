@@ -1,25 +1,25 @@
 
 resource "azurerm_resource_group" "projet" {
-  name     = "projet-resources"
-  location = "francecentral"
+  name     = var.resource_group_name
+  location = var.azure_location
 }
 
 resource "azurerm_virtual_network" "projet" {
-  name                = "projet-network"
-  address_space       = ["10.0.0.0/16"]
+  name                = var.virtual_network_name
+  address_space       = [var.vnet_address_space]
   location            = azurerm_resource_group.projet.location
   resource_group_name = azurerm_resource_group.projet.name
 }
 
 resource "azurerm_subnet" "projet" {
-  name                 = "internal"
+  name                 = var.subnet_name
   resource_group_name  = azurerm_resource_group.projet.name
   virtual_network_name = azurerm_virtual_network.projet.name
-  address_prefixes     = ["10.0.2.0/24"]
+  address_prefixes     = [var.subnet_address_prefix]
 }
 
 resource "azurerm_network_interface" "projet" {
-  name                = "projet-nic"
+  name                = var.network_interface_name
   location            = azurerm_resource_group.projet.location
   resource_group_name = azurerm_resource_group.projet.name
 
@@ -32,12 +32,12 @@ resource "azurerm_network_interface" "projet" {
 }
 
 resource "azurerm_linux_virtual_machine" "projet" {
-  name                = "projet-machine"
+  name                = var.vm_name
   resource_group_name = azurerm_resource_group.projet.name
   location            = azurerm_resource_group.projet.location
-  size                = "Standard_D2s_v3"
-  admin_username      = "adminProjet"
-  admin_password      = "12345&azerty!!"
+  size                = var.vm_size
+  admin_username      = var.admin_username
+  admin_password      = var.admin_password
   disable_password_authentication = false
   network_interface_ids = [
     azurerm_network_interface.projet.id,
@@ -61,7 +61,7 @@ resource "azurerm_linux_virtual_machine" "projet" {
 # stocker des fichiers statiques et gérer les permissions pour sécuriser l’accès
 
 resource "azurerm_storage_account" "projet" {
-  name                     = "projetstoragetp1203" 
+  name                     = var.storage_account_name
   resource_group_name      = azurerm_resource_group.projet.name
   location                 = azurerm_resource_group.projet.location
   account_tier             = "Standard"
@@ -86,14 +86,14 @@ resource "azurerm_storage_container" "logs" {
 # Déployer un backend
 
 resource "azurerm_public_ip" "projet" {
-  name                = "projet-public-ip"
+  name                = var.public_ip_name
   location            = azurerm_resource_group.projet.location
   resource_group_name = azurerm_resource_group.projet.name
   allocation_method   = "Static"
 }
 
 resource "azurerm_network_security_group" "projet" {
-  name                = "projet-nsg"
+  name                = var.network_security_group_name
   location            = azurerm_resource_group.projet.location
   resource_group_name = azurerm_resource_group.projet.name
 
@@ -125,8 +125,4 @@ resource "azurerm_network_security_group" "projet" {
 resource "azurerm_network_interface_security_group_association" "projet" {
   network_interface_id      = azurerm_network_interface.projet.id
   network_security_group_id = azurerm_network_security_group.projet.id
-}
-
-output "public_ip" {
-  value = azurerm_public_ip.projet.ip_address
 }
