@@ -1,0 +1,127 @@
+---
+- name: Deploy backend service
+  hosts: backend
+  become: true
+
+  vars:
+    app_dir: /opt/backend-app
+    service_name: backend-app
+
+  tasks:
+    - name: Install base system packages
+      ansible.builtin.apt:
+        name:
+          - python3
+          - curl
+          - ca-certificates
+          - gnupg
+        state: present
+        update_cache: true
+
+    - name: Ensure apt keyrings directory exists
+      ansible.builtin.file:
+        path: /etc/apt/keyrings
+        state: directory
+        mode: "0755"
+
+    - name: Download NodeSource GPG key
+      ansible.builtin.get_url:
+        url: https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key
+        dest: /tmp/nodesource-repo.gpg.key
+        mode: "0644"
+
+    - name: Convert NodeSource key to keyring format
+      ansible.builtin.command: gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg /tmp/nodesource-repo.gpg.key
+      args:
+        creates: /etc/apt/keyrings/nodesource.gpg
+
+    - name: Add NodeSource repository
+      ansible.builtin.apt_repository:
+        repo: "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_18.x nodistro main"
+        filename: nodesource
+        state: present
+
+    - name: Remove Ubuntu Node.js packages before NodeSource install
+      ansible.builtin.apt:
+        name:
+          - nodejs
+          - npm
+          - libnode-dev
+          - libnode72
+          - nodejs-doc
+        state: absent
+        purge: true
+        autoremove: true
+
+    - name: Repair dpkg state if needed
+      ansible.builtin.command: apt-get -f install -y
+      changed_when: false
+
+    - name: Install Node.js 18
+      ansible.builtin.apt:
+        name: nodejs
+        state: latest
+        update_cache: true
+
+    - name: Ensure backend group exists
+      ansible.builtin.group:
+        name: backend
+        state: present
+
+    - name: Ensure backend user exists
+      ansible.builtin.user:
+        name: backend
+        group: backend
+        shell: /usr/sbin/nologin
+        create_home: false
+        system: true
+
+    - name: Create app directory
+      ansible.builtin.file:
+        path: "{{ app_dir }}"
+        state: directory
+        owner: backend
+        group: backend
+        mode: "0755"
+
+    - name: Copy backend application files
+      ansible.builtin.copy:
+        src: "../app/{{ item }}"
+        dest: "{{ app_dir }}/{{ item }}"
+        owner: backend
+        group: backend
+        mode: "0644"
+      loop:
+        - app.js
+        - package.json
+
+    - name: Install npm dependencies
+      ansible.builtin.command: npm install --omit=dev
+      args:
+        chdir: "{{ app_dir }}"
+
+    - name: Deploy backend environment file
+      ansible.builtin.template:
+        src: templates/backend-app.env.j2
+        dest: /etc/backend-app.env
+        owner: root
+        group: root
+        mode: "0600"
+
+    - name: Deploy systemd service file
+      ansible.builtin.template:
+        src: templates/backend.service.j2
+        dest: "/etc/systemd/system/{{ service_name }}.service"
+        owner: root
+        group: root
+        mode: "0644"
+
+    - name: Reload systemd
+      ansible.builtin.systemd:
+        daemon_reload: true
+
+    - name: Enable and start backend service
+      ansible.builtin.systemd:
+        name: "{{ service_name }}"
+        enabled: true
+        state: started

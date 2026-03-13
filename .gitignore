@@ -12,3 +12,7 @@ override.tf.json
 *_override.tf
 *_override.tf.json
 node_modules/
+
+# Ansible sensitive files
+ansible/inventory.ini
+ansible/group_vars/all.yml

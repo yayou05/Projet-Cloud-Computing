@@ -1,0 +1,16 @@
+[Unit]
+Description=Backend Node.js TP Cloud
+After=network.target
+
+[Service]
+Type=simple
+User=backend
+Group=backend
+WorkingDirectory=/opt/backend-app
+EnvironmentFile=/etc/backend-app.env
+ExecStart=/usr/bin/node /opt/backend-app/app.js
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

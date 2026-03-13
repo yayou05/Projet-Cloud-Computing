@@ -1,0 +1,8 @@
+backend_port: 3000
+backend_api_key: "change-me-api-key"
+allowed_containers: "images,logs"
+
+# Azure Storage values (sensitive)
+azure_storage_connection_string: "DefaultEndpointsProtocol=https;AccountName=...;AccountKey=...;EndpointSuffix=core.windows.net"
+azure_storage_account_name: "projetstoragetp1203"
+azure_storage_account_key: "replace-with-storage-account-key"
